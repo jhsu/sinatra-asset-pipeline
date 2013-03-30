@@ -3,7 +3,11 @@ require 'sprockets-helpers'
 
 module Sinatra
   module AssetPipeline
+    class << self
+      attr_accessor :app_class
+    end
     def self.registered(app)
+      self.app_class = app.class
       app.set_default :sprockets, Sprockets::Environment.new
       app.set_default :assets_precompile, %w(app.js app.css *.png *.jpg *.svg *.eot *.ttf *.woff)
       app.set_default :assets_prefix, 'assets'
@@ -19,20 +23,20 @@ module Sinatra
 
         Sprockets::Helpers.configure do |config|
           config.environment = app.sprockets
-          config.digest = App.assets_digest
+          config.digest = app_class.assets_digest
         end
       end
 
       app.configure :staging, :production do
         Sprockets::Helpers.configure do |config|
-          config.manifest = Sprockets::Manifest.new(app.sprockets, App.assets_path)
+          config.manifest = Sprockets::Manifest.new(app.sprockets, app_class.assets_path)
         end
       end
 
       app.configure :production do
         Sprockets::Helpers.configure do |config|
-          config.protocol = App.assets_protocol
-          config.asset_host = App.assets_host if App.respond_to? :assets_host
+          config.protocol = app_class.assets_protocol
+          config.asset_host = app_class.assets_host if app_class.respond_to? :assets_host
         end
       end
 
@@ -49,7 +53,7 @@ module Sinatra
     end
 
     def set_default(key, default)
-      self.set(key, default) unless App.respond_to? key
+      self.set(key, default) unless self.class.app_class.respond_to? key
     end
   end
 end
