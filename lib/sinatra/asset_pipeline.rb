@@ -3,11 +3,8 @@ require 'sprockets-helpers'
 
 module Sinatra
   module AssetPipeline
-    class << self
-      attr_accessor :app_class
-    end
     def self.registered(app)
-      self.app_class = app.class
+      app_class = app.class
       app.set_default :sprockets, Sprockets::Environment.new
       app.set_default :assets_precompile, %w(app.js app.css *.png *.jpg *.svg *.eot *.ttf *.woff)
       app.set_default :assets_prefix, 'assets'
@@ -53,7 +50,7 @@ module Sinatra
     end
 
     def set_default(key, default)
-      self.set(key, default) unless self.class.app_class.respond_to? key
+      self.set(key, default) unless self.respond_to? key
     end
   end
 end
